@@ -1,31 +1,26 @@
-uint16_t start = 0;
+bool timerphase = 0;
 
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER0_OVF_vect)
 {
-  PORTB ^= _BV(PORTB5);
-}
-
-ISR(TIMER1_COMPB_vect)
-{
-  PORTB ^= _BV(PORTB5);
-}
-
-ISR(TIMER1_OVF_vect)
-{
-  TCNT1 = start;
-  //PORTB ^= _BV(PORTB5);
-  //digitalWrite(13, 0);
-  //reti();
-}
-
-void setup_timer1()
-{
-  
+  OCRA = -OCRA;
+  timerphase = !timerphase;
 }
 
 void setup_timer0()
 {
-  
+  TCCR0A = 0b10 << COM0A0;
+  //TCCR0A |= 0b10 << COM0B0;
+
+  // wgm 3, b011
+  TCCR0A |= _BV(WGM01) | _BV(WGM00);
+  TCCR0B = 0*_BV(WGM02);
+  TCCR0B |= 0b011 << CS00; // 011=64
+
+  OCR0A = 1;
+
+  //TIMSK0 |= _BV(OCIE0B);
+  //TIMSK0 |= _BV(OCIE0A);
+  //TIMSK0 |= _BV(TOIE0);
 }
 
 int main()
@@ -47,8 +42,8 @@ int main()
   ICR1 = 0x0000;
   TCNT1 = 0;
 
-  start = (int16_t)(-0.8 * 16e6 / 1024);
-  OCR1A = (int16_t)(-0.2 * 16e6 / 1024);
+  start = (int16_t)(-0.008 * 16e6 / 1024);
+  OCR1A = (int16_t)(-0.004 * 16e6 / 1024);
   OCR1B = (int16_t)(-1);
 
   // start = -2;  OCR1B = -1;
